@@ -2,6 +2,8 @@ import json
 from os import path
 import re
 from datetime import datetime
+from stix_shifter_utils.stix_translation.src.patterns.pattern_objects import ComparisonComparators, ComparisonExpressionOperators
+from stix_shifter_modules.arcsight.stix_translation.query_constructor import QueryStringPatternTranslator as arcsight_pattern_translator
 
 current_dir = path.abspath(path.dirname(__file__))
 
@@ -10,29 +12,45 @@ ADAPTER_GUIDE_PATH = path.abspath(path.join(current_dir, '../../adapter-guide'))
 
 # Add new connectors to this dictionary as they become available. The key must match the name of the translation module.
 CONNECTORS = {
-    "qradar": "IBM QRadar", 
-    "splunk": "Splunk Enterprise Security", 
-    "bigfix": "HCL BigFix", 
-    "carbonblack": "Carbon Black CB Response",
-    "cbcloud": "Carbon Black Cloud", 
-    "elastic_ecs": "Elasticsearch ECS", 
-    "msatp": "Microsoft Defender for Endpoint",
-    "security_advisor": "IBM Cloud Security Advisor",
-    "guardium": "IBM Guardium Data Protection",
-    "aws_cloud_watch_logs": "Amazon CloudWatch Logs",
-    "azure_sentinel": "Microsoft Azure Sentinel",
+    # "qradar": "IBM QRadar", 
+    # "splunk": "Splunk Enterprise Security", 
+    # "bigfix": "HCL BigFix", 
+    # "carbonblack": "Carbon Black CB Response",
+    # "cbcloud": "Carbon Black Cloud", 
+    # "elastic_ecs": "Elasticsearch ECS", 
+    # "msatp": "Microsoft Defender for Endpoint",
+    # "security_advisor": "IBM Cloud Security Advisor",
+    # "guardium": "IBM Guardium Data Protection",
+    # "aws_cloud_watch_logs": "Amazon CloudWatch Logs",
+    # "azure_sentinel": "Microsoft Azure Sentinel",
     "alertflex": "Alertflex",
-    "arcsight": "Micro Focus ArcSight",
-    "aws_athena": "Amazon Athena",
-    "crowdstrike": 'CrowdStrike Falcon',
-    "trendmicro_vision_one": "Trend Micro Vision One",
-    "onelogin": "OneLogin",
-    "secretserver": "Secret Server",
-    "sumologic": "Sumo Logic",
-    "datadog": "Datadog",
-    "proofpoint": "Proofpoint (SIEM API)",
-    "infoblox": "Infoblox BloxOne Threat Defense"
+    # "arcsight": "Micro Focus ArcSight",
+    # "aws_athena": "Amazon Athena",
+    # "crowdstrike": 'CrowdStrike Falcon',
+    # "trendmicro_vision_one": "Trend Micro Vision One",
+    # "onelogin": "OneLogin",
+    # "secretserver": "Secret Server",
+    # "sumologic": "Sumo Logic",
+    # "datadog": "Datadog",
+    # "proofpoint": "Proofpoint (SIEM API)",
+    # "infoblox": "Infoblox BloxOne Threat Defense"
 }
+
+STIX_OPERATORS = {
+        ComparisonExpressionOperators.And: "AND",
+        ComparisonExpressionOperators.Or: "OR",
+        ComparisonComparators.GreaterThan: ">",
+        ComparisonComparators.GreaterThanOrEqual: ">=",
+        ComparisonComparators.LessThan: "<",
+        ComparisonComparators.LessThanOrEqual: "<=",
+        ComparisonComparators.Equal: "=",
+        ComparisonComparators.NotEqual: "!=",
+        ComparisonComparators.Like: "LIKE",
+        ComparisonComparators.In: "IN",
+        ComparisonComparators.Matches: 'MATCHES',
+        ComparisonComparators.IsSubSet: 'ISSUBSET',
+        ComparisonComparators.IsSuperSet: 'ISSUPERSET'
+    }
 
 now = datetime.now()
 UPDATED_AT = now.strftime("%D")
@@ -84,6 +102,14 @@ def __main__():
         table_of_contents += "- [{}]({})\n".format(module, "connectors/{}_supported_stix.md".format(key))
         sorted_objects = json.dumps(stix_attribute_collection, sort_keys=True)
         sorted_objects = json.loads(sorted_objects)
+        # Begin Supported Operators
+        arcsight_pattern_tran = arcsight_pattern_translator.comparator_lookup
+        output_string += "| STIX Operator | Data Source Operator |\n"
+        output_string += "|--|--|\n"
+        for key, val in arcsight_pattern_tran.items():
+            output_string += "| {} | {} |\n".format(STIX_OPERATORS[key], val)
+        output_string += "\n\n"
+        # End Supported Operators
         output_string += "| STIX Object | STIX Property | Data Source Field |\n"
         output_string += "|--|--|--|\n"
         for stix_object, property_list in sorted_objects.items():
