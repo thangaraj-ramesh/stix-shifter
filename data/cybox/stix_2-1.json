@@ -6,8 +6,10 @@
             "type": "identity",
             "id": "identity--f431f809-377b-45e0-aa1c-6a4751cae5ff",
             "name": "MySQL",
-            "identity_class": "events",
-            "spec_version": "2.1"
+            "identity_class": "system",
+            "spec_version": "2.1",
+            "created": "2021-08-25T13:51:39.190Z",
+            "modified": "2021-08-25T13:51:39.190Z"
         },
         {
             "id": "observed-data--72a0eae7-b190-4406-8f33-6183a622ebe0",
@@ -52,6 +54,8 @@
             "id": "network-traffic--67faa58c-f201-545c-9baa-d158eac8d854",
             "src_ref": "ipv4-addr--d737036e-857f-5b18-92c1-4728ffec891d",
             "dst_ref": "ipv4-addr--d664a071-b85c-5f30-8fff-4e6424452eed",
+            "src_port": 2000,
+            "dst_port": 1000,
             "protocols": [
                 "tcp"
             ],
@@ -74,6 +78,8 @@
             "id": "network-traffic--9136ef1a-c345-56ed-85d2-567267e55122",
             "src_ref": "ipv4-addr--587a773a-05fd-533d-83c5-5960ba6452f4",
             "dst_ref": "ipv4-addr--cc16b62d-2045-55ab-993b-def20e0166e0",
+            "src_port": 2000,
+            "dst_port": 1000,
             "protocols": [
                 "udp"
             ],
