@@ -100,7 +100,7 @@ class TestTransform(object):
         
         data = [{"sourceip": source_ip, "destinationip": destination_ip, "url": url, "eventpayload": payload, "username": user_id, "protocol": 'TCP',
                 "sourceport": "3000", "destinationport": 2000, "filename": file_name, "filehash": filehash, "md5hash": md5hash, "sha1hash": sha1hash, "sha256hash": sha256hash,
-                "domainname": domain, "sourcemac": source_mac, "destinationmac": destination_mac, "Image": process_image, "ParentImage": process_parent_image, 
+                "dnsdomainname": domain, "sourcemac": source_mac, "destinationmac": destination_mac, "Image": process_image, "ParentImage": process_parent_image, 
                 "ProcessCommandLine": process_command_line, "ParentCommandLine": process_parent_command_line, "LoadedImage": process_loaded_image }]
 
         result_bundle = run_in_thread(entry_point.translate_results, DATA_SOURCE, data)
@@ -431,8 +431,8 @@ class TestTransform(object):
             "mapping": {
                 "to_stix_map": {
                     "username": {"key": "user-account.user_id"},
-                    "identityip": {"key": "x_ibm_ariel.identity_ip", "cybox": False},
-                    "qidname": {"key": "x_ibm_ariel.qid_name", "cybox": False},
+                    "identityip": {"key": "x_ibm_ariel.identity_ip"},
+                    "qidname": {"key": "x_ibm_ariel.qid_name"},
                     "url": {"key": "url.value"},
                     "custompayload": {"key": "artifact.payload_bin"}
                 }
@@ -528,7 +528,7 @@ class TestTransform(object):
         source_mac = "00-00-5E-00-53-00"
         destination_mac = "00-00-5A-00-55-01"
         data = [{"sourceip": source_ip, "destinationip": destination_ip, "url": url, "base64_payload": payload, "username": user_id, "protocol": 'TCP',
-                "sourceport": "3000", "destinationport": 2000, "filename": file_name, "domainname": url, "sourcemac": source_mac, "destinationmac": destination_mac}]
+                "sourceport": "3000", "destinationport": 2000, "filename": file_name, "dnsdomainname": url, "sourcemac": source_mac, "destinationmac": destination_mac}]
         
         result_bundle = run_in_thread(entry_point.translate_results, DATA_SOURCE, data)
         
@@ -634,3 +634,35 @@ class TestTransform(object):
 
         assert(finding['start'] == START_TIMESTAMP)
         assert(finding['end'] == END_TIMESTAMP)
+
+    def test_zero_value_filtering(self):
+
+        data = [{
+            "qidname": "Information Message",
+            "sourceip": "0.0.0.0",
+            "destinationip": "0.0.0.0",
+            "sourcemac": "00-00-00-00-00-00",
+            "destinationmac": "00-00-00-00-00-00",
+            "identityip": "0.0.0.0",
+            "sourcev6": "0:0:0:0:0:0:0:0",
+            "destinationv6": "0:0:0:0:0:0:0:0",
+            "sourceport": "1234",
+            "destinationport": "1234"
+        }]
+
+        result_bundle = run_in_thread(entry_point.translate_results, DATA_SOURCE, data)
+        observed_data = result_bundle['objects'][1]
+        objects = observed_data['objects']
+
+        ipv4_addr = TestTransform.get_first_of_type(objects.values(), 'ipv4-addr')
+        assert(ipv4_addr is None) 
+        ipv6_addr = TestTransform.get_first_of_type(objects.values(), 'ipv6-addr')
+        assert(ipv6_addr is None)
+        mac_addr = TestTransform.get_first_of_type(objects.values(), 'mac-addr')
+        assert(mac_addr is None)
+        x_oca_event = TestTransform.get_first_of_type(objects.values(), 'x-oca-event')
+        assert(x_oca_event['action'] == "Information Message")
+        network_traffic = TestTransform.get_first_of_type(objects.values(), 'network-traffic')
+        assert(network_traffic is not None)
+        assert('src_ref' not in network_traffic)
+        assert('dst_ref' not in network_traffic)
